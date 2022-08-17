@@ -5,13 +5,17 @@
 
 #include "ray.h"
 
+class material;
+
 struct hit_record {
     private:
         vec3 normal;
-        bool front_face;
+        bool front_face{};
     public:
         point3 p;
-        double t;
+        double t{};
+        shared_ptr<material> mat_ptr;
+
 
     vec3 get_normal() const {
         return normal;
