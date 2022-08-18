@@ -21,6 +21,10 @@ struct hit_record {
         return normal;
     }
 
+    bool get_front_face() const {
+        return front_face;
+    }
+
     inline void set_face_normal(const ray& r, const vec3& outward_normal) {
         front_face = dot(r.direction(), outward_normal) < 0;
         normal = front_face ? outward_normal :-outward_normal;

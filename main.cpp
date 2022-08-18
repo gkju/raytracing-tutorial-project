@@ -9,6 +9,12 @@
 
 #include <iostream>
 #include <fstream>
+#ifdef EMSCRIPTEN
+#include <emscripten/bind.h>
+
+using namespace emscripten;
+
+#endif
 
 double hit_sphere(const point3& center, double radius, const ray& r) {
     vec3 oc = r.origin() - center;
@@ -44,7 +50,7 @@ color ray_color(const ray& r, const hittable& world, int depth) {
     return (1.0-t)*color(1.0, 1.0, 1.0) + t*color(0.5, 0.7, 1.0);
 }
 
-void ImageRender(std::ostream &out) {
+void image_render(std::ostream &out) {
     // Image
     const auto aspect_ratio = 16.0 / 9.0;
     const int image_width = 800;
@@ -53,13 +59,17 @@ void ImageRender(std::ostream &out) {
     const int max_depth = 50;
 
     // World
+    auto R = cos(pi/4);
     hittable_list world;
-    auto mat = make_shared<lambertian>(color(0.1, 0.2, 0.5));
-    world.add(make_shared<sphere>(point3(0,0,-1), 0.5, mat));
-    world.add(make_shared<sphere>(point3(0,-100.5,-1), 100, mat));
+
+    auto material_left  = make_shared<lambertian>(color(0,0,1));
+    auto material_right = make_shared<lambertian>(color(1,0,0));
+
+    world.add(make_shared<sphere>(point3(-R, 0, -1), R, material_left));
+    world.add(make_shared<sphere>(point3( R, 0, -1), R, material_right));
 
     // Camera
-    camera cam;
+    camera cam(90.0, aspect_ratio);
 
     // Render
     out << "P3\n" << image_width << ' ' << image_height << "\n255\n";
@@ -74,12 +84,18 @@ void ImageRender(std::ostream &out) {
                 ray r = cam.get_ray(u, v);
                 pixel_color += ray_color(r, world, max_depth);
             }
-            write_color(out, pixel_color, samples_per_pixel);
+            write_color(out, pixel_color, samples_per_pixel, i, j);
         }
     }
 
     std::cerr << "\nDone.\n";
 }
+
+#ifdef EMSCRIPTEN
+EMSCRIPTEN_BINDINGS(my_module) {
+    function("image_render", &image_render);
+}
+#endif
 
 int main() {
     std::ofstream out("../out.ppm");
@@ -88,5 +104,5 @@ int main() {
     if(!out.good()) {
        throw std::runtime_error("Couldn't create file");
     }
-    ImageRender(out);
+    image_render(out);
 }
