@@ -1,0 +1,1 @@
+/Users/gjus/Desktop/emsdk/upstream/emscripten/em++ -s WASM=1 -s EXPORTED_FUNCTIONS='["_main", "_image_render"]' @CMakeFiles/raytracer_one_weekend.dir/objects1.rsp -o raytracer_one_weekend.js 
